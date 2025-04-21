@@ -37,14 +37,20 @@ async def leave(ctx):
 @bot.command()
 async def ralle(ctx):
     """Bot plays ralle music"""
-    if ctx.voice_client:
-        if not ctx.voice_client.is_playing():
-            ctx.voice_client.play(discord.FFmpegPCMAudio("Rasmus Seebach - Under stjernerne på himlen.mp3"))
-            await ctx.send("Playing ralle music!")
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        await channel.connect()
+        await ctx.send(f"Joined {channel.name}")
+        if ctx.voice_client:
+            if not ctx.voice_client.is_playing():
+                ctx.voice_client.play(discord.FFmpegPCMAudio("Rasmus Seebach - Under stjernerne på himlen.mp3"))
+                await ctx.send("Spiller lidt lækker musik")
+            else:
+                await ctx.send("gider jeg sgu ikke")
         else:
-            await ctx.send("Already playing music.")
+            await ctx.send("I'm not in a voice channel.")
     else:
-        await ctx.send("I'm not in a voice channel.")
+        await ctx.send("You must be in a voice channel first.")
 
 @bot.event
 async def on_ready():
