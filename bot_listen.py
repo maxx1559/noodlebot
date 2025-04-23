@@ -1,4 +1,6 @@
 import discord
+import os
+import random
 from discord.ext import commands
 
 intents = discord.Intents.default()
@@ -13,6 +15,9 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 TARGET_USER_ID = 270962054477774848
 # Path to your sound file
 SOUND_FILE = "fart-with-reverb.mp3"
+SONGS = os.listdir("songs")
+for song in SONGS:
+    print(song)
 
 @bot.command()
 async def listen(ctx):
@@ -20,37 +25,54 @@ async def listen(ctx):
     if ctx.author.voice:
         channel = ctx.author.voice.channel
         await channel.connect()
-        await ctx.send(f"Joined {channel.name}")
+        await ctx.send(f"Hva' så {channel.name}")
     else:
-        await ctx.send("You must be in a voice channel first.")
+        await ctx.send("Eyo, du skal være i en voice kanal.")
+
+@bot.command()
+async def stopsong(ctx):
+    """Bot stops the current song."""
+    if ctx.voice_client and ctx.voice_client.is_playing():
+        ctx.voice_client.stop()
+        await ctx.send("Fint, så stopper jeg.")
+    else:
+        await ctx.send("Eyo, der er ikke noget musik der spiller lige nu.")
 
 
 @bot.command()
-async def leave(ctx):
+async def stop(ctx):
     """Bot leaves the voice channel it's in."""
     if ctx.voice_client:
         await ctx.voice_client.disconnect()
-        await ctx.send("Left the voice channel.")
+        await ctx.send("Fint så smutter jeg også bare.")
     else:
-        await ctx.send("I'm not in a voice channel.")
+        await ctx.send("Jeg er ikke i nogen voice kanal.")
 
 @bot.command()
 async def ralle(ctx):
     """Bot plays ralle music"""
     if ctx.author.voice:
         channel = ctx.author.voice.channel
-        await channel.connect()
-        await ctx.send(f"Joined {channel.name}")
-        if ctx.voice_client:
-            if not ctx.voice_client.is_playing():
-                ctx.voice_client.play(discord.FFmpegPCMAudio("Rasmus Seebach - Under stjernerne på himlen.mp3"))
-                await ctx.send("Spiller lidt lækker musik")
-            else:
-                await ctx.send("gider jeg sgu ikke")
+
+        # Check if bot is already connected to a voice channel
+        if ctx.voice_client is not None:
+            if ctx.voice_client.channel != channel:
+                await ctx.voice_client.move_to(channel)
+                await ctx.send(f"Flytter til {channel.name}")
         else:
-            await ctx.send("I'm not in a voice channel.")
+            await channel.connect()
+            await ctx.send(f"Hva' så {channel.name}")
+
+        # Play random song from the list if not already playing
+        if not ctx.voice_client.is_playing():
+            song = random.choice(SONGS)
+            ctx.voice_client.play(discord.FFmpegPCMAudio("songs/"+song))
+            await ctx.send("Spiller lidt lækker musik, vi starter med: " + song)
+            print(f"Playing {song} for {ctx.author.display_name}")
+        else:
+            await ctx.send("Gider sgu ikke spille noget - er allerede i gang.")
     else:
-        await ctx.send("You must be in a voice channel first.")
+        await ctx.send("Du skal være i en voice kanal først.")
 
 @bot.event
 async def on_ready():
@@ -68,7 +90,7 @@ async def on_voice_state_update(member, before, after):
         if vc and vc.channel == after.channel:
             if not vc.is_playing():
                 # Play the sound
-                vc.play(discord.FFmpegPCMAudio("SOUND_FILE"))
+                vc.play(discord.FFmpegPCMAudio("huntsman-r.e.p.o-sound-made-with-Voicemod.mp3"))
                 print(f"🔊 Played sound for {member.display_name}")
             else:
                 print(f"⚠️ Already playing audio, skipped sound for {member.display_name}")
