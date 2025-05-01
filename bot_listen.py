@@ -49,7 +49,7 @@ async def stop(ctx):
         await ctx.send("Jeg er ikke i nogen voice kanal.")
 
 @bot.command()
-async def ralle(ctx):
+async def ralle(ctx,arg=None):
     """Bot plays ralle music"""
     if ctx.author.voice:
         channel = ctx.author.voice.channel
@@ -64,13 +64,42 @@ async def ralle(ctx):
             await ctx.send(f"Hva' så {channel.name}")
 
         # Play random song from the list if not already playing
+        
         if not ctx.voice_client.is_playing():
-            song = random.choice(SONGS)
-            ctx.voice_client.play(discord.FFmpegPCMAudio("songs/"+song))
-            await ctx.send("Spiller lidt lækker musik, vi starter med: " + song)
-            print(f"Playing {song} for {ctx.author.display_name}")
+            if arg == None:
+                song = random.choice(SONGS)
+                ctx.voice_client.play(discord.FFmpegPCMAudio("songs/"+song))
+                await ctx.send("Spiller lidt lækker musik, vi starter med: " + song.split(".")[0])
+                print(f"Playing {song} for {ctx.author.display_name}")
+            else:
+                # Check if the song is in the list
+                song_found = False
+                for song in SONGS:
+                    if arg.lower() in song.lower():
+                        song_found = True
+                        ctx.voice_client.play(discord.FFmpegPCMAudio("songs/"+song))
+                        await ctx.send("Ok mand, så spiller jeg: " + song.split(".")[0])
+                        print(f"Playing {song} for {ctx.author.display_name}")
+                        break
+
+                if not song_found:    
+                    await ctx.send("Den sang kender jeg sgu ikke.")
+                    print(f"Song not found: {arg}")
+
         else:
             await ctx.send("Gider sgu ikke spille noget - er allerede i gang.")
+        
+    else:
+        await ctx.send("Du skal være i en voice kanal først.")
+
+@bot.command()
+async def tracks(ctx):
+    """List all available tracks."""
+    if ctx.author.voice:
+        channel = ctx.author.voice.channel
+        await ctx.send("Her er de sange jeg kender:")
+        for song in SONGS:
+            await ctx.send(song.split(".")[0])
     else:
         await ctx.send("Du skal være i en voice kanal først.")
 
